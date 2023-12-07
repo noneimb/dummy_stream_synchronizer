@@ -54,6 +54,7 @@ struct _GstStreamSynchronizer
   guint current_stream_number;
 
   GstClockTime group_start_time;
+  GstClockTime group_position_time;
 
   gboolean have_group_id;
   guint group_id;

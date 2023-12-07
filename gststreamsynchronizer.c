@@ -515,10 +515,10 @@ gst_stream_synchronizer_sink_event (GstPad * pad, GstObject * parent,
             }
           }
 
-          self->group_start_time += position;
+          self->group_position_time += position;
 
-          GST_DEBUG_OBJECT (self, "New group start time: %" GST_TIME_FORMAT,
-              GST_TIME_ARGS (self->group_start_time));
+          GST_DEBUG_OBJECT (self, "New group position time: %" GST_TIME_FORMAT,
+              GST_TIME_ARGS (self->group_position_time));
 
           for (l = self->streams; l; l = l->next) {
             GstSyncStream *ostream = l->data;
@@ -554,7 +554,8 @@ gst_stream_synchronizer_sink_event (GstPad * pad, GstObject * parent,
             "New stream, updating base from %" GST_TIME_FORMAT " to %"
             GST_TIME_FORMAT, GST_TIME_ARGS (segment.base),
             GST_TIME_ARGS (segment.base + self->group_start_time));
-        segment.base += self->group_start_time;
+        segment.base = self->group_start_time;
+        segment.base += self->group_position_time;
 
         GST_DEBUG_OBJECT (pad, "Segment was: %" GST_SEGMENT_FORMAT,
             &stream->segment);
@@ -1072,6 +1073,7 @@ gst_stream_synchronizer_change_state (GstElement * element,
     case GST_STATE_CHANGE_READY_TO_PAUSED:
       GST_DEBUG_OBJECT (self, "State change READY->PAUSED");
       self->group_start_time = 0;
+      self->group_position_time = 0;
       self->have_group_id = TRUE;
       self->group_id = G_MAXUINT;
       self->shutdown = FALSE;
@@ -1127,6 +1129,7 @@ gst_stream_synchronizer_change_state (GstElement * element,
 
       GST_DEBUG_OBJECT (self, "State change PAUSED->READY");
       self->group_start_time = 0;
+      self->group_position_time = 0;
 
       GST_STREAM_SYNCHRONIZER_LOCK (self);
       for (l = self->streams; l; l = l->next) {
